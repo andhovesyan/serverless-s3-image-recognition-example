@@ -1,0 +1,34 @@
+service: img-rec
+plugins:
+  - serverless-s3-local
+  - serverless-plugin-existing-s3
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource: "*"
+  s3:
+    host: 0.0.0.0
+    port: 8000
+    directory: /tmp
+
+custom:
+  bucket: img-rec-test-bucket
+
+functions:
+  webhook:
+    handler: handler.webhook
+    events:
+      - http: POST /webhook
+
+  postprocess:
+    handler: handler.postprocess
+    events:
+      - s3:
+          bucket: ${self:custom.bucket}
+          event: ObjectCreated:*       
